@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mini Discord Clone</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      display: flex;
+      height: 100vh;
+      background: #36393f;
+      color: white;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 200px;
+      background: #2f3136;
+      padding: 10px;
+    }
+
+    /* Chat area */
+    .chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: scroll;
+    }
+
+    .input-area {
+      display: flex;
+      padding: 10px;
+      background: #40444b;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px;
+      background: #5865f2;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h3>Servers</h3>
+  <p># general</p>
+</div>
+
+<div class="chat">
+  <div class="messages" id="messages"></div>
+
+  <div class="input-area">
+    <input id="messageInput" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // 🔑 Replace with your Firebase config
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_ID",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const messagesDiv = document.getElementById("messages");
+
+  const q = query(collection(db, "messages"), orderBy("createdAt"));
+
+  onSnapshot(q, (snapshot) => {
+    messagesDiv.innerHTML = "";
+    snapshot.forEach((doc) => {
+      const msg = document.createElement("div");
+      msg.textContent = doc.data().text;
+      messagesDiv.appendChild(msg);
+    });
+  });
+
+  window.sendMessage = async function () {
+    const input = document.getElementById("messageInput");
+    const text = input.value;
+
+    if (!text) return;
+
+    await addDoc(collection(db, "messages"), {
+      text,
+      createdAt: Date.now()
+    });
+
+    input.value = "";
+  };
+</script>
+
+</body>
+</html>

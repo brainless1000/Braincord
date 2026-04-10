@@ -1,42 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Discord Clone</title>
+  <title>Discord UI Clone</title>
   <style>
     body {
       margin: 0;
-      font-family: Arial;
       display: flex;
       height: 100vh;
-      background: #36393f;
+      font-family: Arial;
       color: white;
     }
 
-    .sidebar {
-      width: 200px;
+    /* Servers bar */
+    .servers {
+      width: 70px;
+      background: #202225;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 10px;
+    }
+
+    .server-icon {
+      width: 50px;
+      height: 50px;
+      background: #5865f2;
+      border-radius: 50%;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Channels */
+    .channels {
+      width: 220px;
       background: #2f3136;
       padding: 10px;
     }
 
+    .channel {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .channel:hover {
+      background: #40444b;
+    }
+
+    /* Chat area */
     .chat {
       flex: 1;
       display: flex;
       flex-direction: column;
+      background: #36393f;
     }
 
     .messages {
       flex: 1;
       padding: 10px;
       overflow-y: auto;
-    }
-
-    .message {
-      margin-bottom: 10px;
-    }
-
-    .username {
-      font-weight: bold;
-      color: #7289da;
     }
 
     .input-area {
@@ -50,6 +74,8 @@
       padding: 10px;
       border: none;
       outline: none;
+      background: #303338;
+      color: white;
     }
 
     button {
@@ -57,101 +83,29 @@
       background: #5865f2;
       border: none;
       color: white;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<div class="sidebar">
-  <h3>Server</h3>
-  <p># general</p>
+<div class="servers">
+  <div class="server-icon">S</div>
+</div>
+
+<div class="channels">
+  <h3>Channels</h3>
+  <div class="channel"># general</div>
+  <div class="channel"># gaming</div>
 </div>
 
 <div class="chat">
   <div class="messages" id="messages"></div>
 
   <div class="input-area">
-    <input id="messageInput" placeholder="Type message..." />
-    <button onclick="sendMessage()">Send</button>
+    <input id="messageInput" placeholder="Message #general" />
+    <button>Send</button>
   </div>
 </div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    onSnapshot,
-    query,
-    orderBy
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    authDomain: "YOUR_DOMAIN",
-    projectId: "YOUR_ID",
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // 🔐 Username system
-  let username = localStorage.getItem("username");
-
-  if (!username) {
-    username = prompt("Enter your username:");
-    localStorage.setItem("username", username);
-  }
-
-  const messagesDiv = document.getElementById("messages");
-  const input = document.getElementById("messageInput");
-
-  // 📡 Real-time messages
-  const q = query(collection(db, "messages"), orderBy("createdAt"));
-
-  onSnapshot(q, (snapshot) => {
-    messagesDiv.innerHTML = "";
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-
-      const div = document.createElement("div");
-      div.classList.add("message");
-
-      div.innerHTML = `
-        <span class="username">${data.user}:</span>
-        ${data.text}
-      `;
-
-      messagesDiv.appendChild(div);
-    });
-
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  });
-
-  // 🚀 Send message
-  window.sendMessage = async function () {
-    const text = input.value;
-
-    if (!text) return;
-
-    await addDoc(collection(db, "messages"), {
-      text,
-      user: username,
-      createdAt: Date.now()
-    });
-
-    input.value = "";
-  };
-
-  // ⌨️ Enter key support
-  input.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  });
-</script>
 
 </body>
 </html>

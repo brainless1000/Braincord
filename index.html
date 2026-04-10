@@ -1,111 +1,336 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Discord UI Clone</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Discord Clone</title>
   <style>
-    body {
-      margin: 0;
-      display: flex;
-      height: 100vh;
-      font-family: Arial;
-      color: white;
+    /* 1. Authentic Color Palette & Fonts */
+    :root {
+      --bg-servers: #1e1f22;
+      --bg-channels: #2b2d31;
+      --bg-chat: #313338;
+      --bg-message-input: #383a40;
+      --bg-user-panel: #232428;
+      --brand: #5865F2;
+      --brand-hover: #4752c4;
+      --text-normal: #dbdee1;
+      --text-muted: #949ba4;
+      --channel-hover: #3f4147;
+      --channel-active: #404249;
     }
 
-    /* Servers bar */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      font-family: 'gg sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: var(--text-normal);
+      background-color: var(--bg-chat);
+      overflow: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background-color: #1a1b1e; border-radius: 4px; }
+
+    /* 2. Servers Sidebar */
     .servers {
-      width: 70px;
-      background: #202225;
+      width: 72px;
+      background: var(--bg-servers);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 10px;
+      padding: 12px 0;
+      gap: 8px;
     }
 
     .server-icon {
-      width: 50px;
-      height: 50px;
-      background: #5865f2;
-      border-radius: 50%;
-      margin-bottom: 10px;
+      width: 48px;
+      height: 48px;
+      background: #313338;
+      border-radius: 50%; /* Starts round */
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      font-weight: bold;
+      color: var(--text-normal);
+      transition: all 0.2s ease;
+      position: relative;
     }
 
-    /* Channels */
+    /* The Discord "Squircle" Hover Effect */
+    .server-icon:hover {
+      border-radius: 16px;
+      background: var(--brand);
+      color: white;
+    }
+
+    .server-icon.active {
+      border-radius: 16px;
+      background: var(--brand);
+    }
+
+    /* Active server pill indicator */
+    .server-icon.active::before {
+      content: "";
+      position: absolute;
+      left: -12px;
+      width: 8px;
+      height: 40px;
+      background: white;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .server-separator {
+      width: 32px;
+      height: 2px;
+      background: #35363c;
+      border-radius: 1px;
+    }
+
+    /* 3. Channels Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-channels);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .server-header {
+      height: 48px;
+      padding: 12px 16px;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .server-header:hover { background: var(--channel-hover); }
+
     .channels {
-      width: 220px;
-      background: #2f3136;
-      padding: 10px;
+      flex: 1;
+      padding: 12px 8px;
+      overflow-y: auto;
+    }
+
+    .category {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 8px;
+      margin-top: 8px;
     }
 
     .channel {
-      padding: 8px;
+      padding: 6px 8px;
+      margin-bottom: 2px;
       cursor: pointer;
+      color: var(--text-muted);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
     }
 
     .channel:hover {
-      background: #40444b;
+      background: var(--channel-hover);
+      color: var(--text-normal);
     }
 
-    /* Chat area */
+    .channel.active {
+      background: var(--channel-active);
+      color: white;
+    }
+
+    .hashtag { font-size: 18px; color: #80848e; }
+
+    /* User Panel (Bottom of channels) */
+    .user-panel {
+      height: 52px;
+      background: var(--bg-user-panel);
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--brand);
+      border-radius: 50%;
+    }
+
+    .user-info { flex: 1; }
+    .user-info .name { font-size: 14px; font-weight: 600; color: white; }
+    .user-info .status { font-size: 12px; color: var(--text-muted); }
+
+    /* 4. Chat Area */
     .chat {
       flex: 1;
       display: flex;
       flex-direction: column;
-      background: #36393f;
+      background: var(--bg-chat);
+    }
+
+    .chat-header {
+      height: 48px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #26282c;
+      font-weight: 600;
     }
 
     .messages {
       flex: 1;
-      padding: 10px;
+      padding: 16px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .input-area {
+    /* Message styling */
+    .message {
       display: flex;
-      padding: 10px;
-      background: #40444b;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .message-content h4 {
+      font-size: 16px;
+      color: white;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* 5. Input Area */
+    .input-wrapper {
+      padding: 0 16px 24px 16px;
+    }
+
+    .input-box {
+      display: flex;
+      background: var(--bg-message-input);
+      border-radius: 8px;
+      padding: 10px 16px;
+      align-items: center;
     }
 
     input {
       flex: 1;
-      padding: 10px;
       border: none;
       outline: none;
-      background: #303338;
-      color: white;
+      background: transparent;
+      color: var(--text-normal);
+      font-size: 16px;
     }
 
-    button {
-      padding: 10px;
-      background: #5865f2;
-      border: none;
-      color: white;
-    }
+    input::placeholder { color: var(--text-muted); }
+
   </style>
 </head>
 <body>
 
-<div class="servers">
-  <div class="server-icon">S</div>
-</div>
-
-<div class="channels">
-  <h3>Channels</h3>
-  <div class="channel"># general</div>
-  <div class="channel"># gaming</div>
-</div>
-
-<div class="chat">
-  <div class="messages" id="messages"></div>
-
-  <div class="input-area">
-    <input id="messageInput" placeholder="Message #general" />
-    <button>Send</button>
+  <div class="servers">
+    <div class="server-icon" style="background: var(--brand); color: white;">D</div>
+    <div class="server-separator"></div>
+    <div class="server-icon active">S1</div>
+    <div class="server-icon">S2</div>
+    <div class="server-icon" style="color: #23a559; background: #313338;">+</div>
   </div>
-</div>
+
+  <div class="sidebar">
+    <div class="server-header">
+      My Awesome Server
+    </div>
+    
+    <div class="channels">
+      <div class="category">Text Channels</div>
+      <div class="channel active"><span class="hashtag">#</span> general</div>
+      <div class="channel"><span class="hashtag">#</span> gaming</div>
+      <div class="channel"><span class="hashtag">#</span> help</div>
+    </div>
+
+    <div class="user-panel">
+      <div class="avatar"></div>
+      <div class="user-info">
+        <div class="name">User</div>
+        <div class="status">Online</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat">
+    <div class="chat-header">
+      <span class="hashtag">#</span> general
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="message">
+        <div class="avatar" style="background: #ed4245;"></div>
+        <div class="message-content">
+          <h4>Admin <span class="timestamp">Today at 10:00 AM</span></h4>
+          <p>Welcome to the enhanced server!</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-wrapper">
+      <div class="input-box">
+        <input type="text" id="messageInput" placeholder="Message #general" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('messageInput');
+    const messages = document.getElementById('messages');
+
+    input.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && input.value.trim() !== '') {
+        const text = input.value;
+        
+        // Create new message HTML
+        const messageHTML = `
+          <div class="message">
+            <div class="avatar"></div>
+            <div class="message-content">
+              <h4>User <span class="timestamp">Just now</span></h4>
+              <p>${text}</p>
+            </div>
+          </div>
+        `;
+        
+        // Append and scroll to bottom
+        messages.insertAdjacentHTML('beforeend', messageHTML);
+        messages.scrollTop = messages.scrollHeight;
+        
+        // Clear input
+        input.value = '';
+      }
+    });
+  </script>
 
 </body>
 </html>
